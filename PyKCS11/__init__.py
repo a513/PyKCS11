@@ -661,14 +661,28 @@ class PyKCS11Lib(object):
             raise PyKCS11Error(rv)
 
         m = []
+#LISSI
+#define NSSCK_VENDOR_PKCS11_RU_TEAM 0xd4321000 
         for x in range(len(mechanismList)):
             mechanism = mechanismList[x]
             if mechanism >= CKM_VENDOR_DEFINED:
-                k = 'CKM_VENDOR_DEFINED_0x%X' % (mechanism - CKM_VENDOR_DEFINED)
-                CKM[k] = mechanism
-                CKM[mechanism] = k
+#LISSI
+                if mechanism >= CKM_VENDOR_DEFINED and mechanism < 0xd4321000:
+
+                    k = 'CKM_VENDOR_DEFINED_0x%X' % (mechanism - CKM_VENDOR_DEFINED)
+                    CKM[k] = mechanism
+                    CKM[mechanism] = k
             m.append(CKM[mechanism])
         return m
+#ORIG
+#        for x in range(len(mechanismList)):
+#            mechanism = mechanismList[x]
+#            if mechanism >= CKM_VENDOR_DEFINED:
+#                k = 'CKM_VENDOR_DEFINED_0x%X' % (mechanism - CKM_VENDOR_DEFINED)
+#                CKM[k] = mechanism
+#                CKM[mechanism] = k
+#            m.append(CKM[mechanism])
+#        return m
 
     def getMechanismInfo(self, slot, type):
         """

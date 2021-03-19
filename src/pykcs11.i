@@ -1201,7 +1201,8 @@ typedef unsigned long CK_RV;
 #define CKP_PKCS5_PBKD2_HMAC_SHA512_256    0x00000008
 
 #define CKZ_SALT_SPECIFIED        0x00000001
-
+/*LISSI*/
+%include "pkcs11t_gost.h"
 
 %include "pkcs11lib.h"
 
