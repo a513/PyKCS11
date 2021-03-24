@@ -6,6 +6,7 @@ Authors
 
 - Copyright (C) 2004 Midori (midori -- a-t -- paipai dot net)
 - Copyright (C) 2006-2018 Ludovic Rousseau (ludovic.rousseau@free.fr)
+- Copyright (C) 2021 Vladimir Orlov (Support for GOST/Russian cryptography, vorlov@lissi.ru)
 
 
 Licence
