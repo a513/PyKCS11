@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+
+from PyKCS11 import *
+
+
+oclass_pub  = PyKCS11.CKO_PUBLIC_KEY
+oclass_priv = PyKCS11.CKO_PRIVATE_KEY
+
+tc26_decc_A_der_oid = [0x06, 0x09, 0x2a, 0x85, 0x03, 0x07, 0x01, 0x02, 0x01, 0x02, 0x01 ]
+tc26_gost3411_2012_512_der_oid = [0x06, 0x08, 0x2a, 0x85, 0x03, 0x07, 0x01, 0x01, 0x02, 0x03]
+gost28147params_Z = [0x06, 0x09, 0x2a, 0x85, 0x03, 0x07, 0x01, 0x02, 0x05, 0x01, 0x01]
+digest = [
+        0x27, 0x55, 0x57, 0xa4, 0x7d, 0xcf, 0xcb, 0x82,
+        0x35, 0xff, 0x02, 0x9b, 0x74, 0x83, 0x7f, 0x04,
+        0x41, 0xef, 0xe4, 0x1a, 0xed, 0x12, 0xc2, 0x07,
+        0x31, 0x3e, 0x83, 0xb2, 0x7a, 0xbd, 0x1e, 0x6a,
+        0x9d, 0x89, 0x27, 0x13, 0xbc, 0x30, 0xa1, 0x6b,
+        0xf9, 0x47, 0xd4, 0x6a, 0x59, 0xbb, 0xbb, 0x3a,
+        0x33, 0xee, 0x33, 0x38, 0x53, 0x91, 0xc7, 0x36,
+        0x75, 0xe7, 0xd0, 0xc3, 0x60, 0x21, 0x35, 0x40
+]
+digest_err = [
+        0x27, 0x55, 0x57, 0xa4, 0x7d, 0xcf, 0xcb, 0x82,
+        0x35, 0xff, 0x02, 0x9b, 0x74, 0x83, 0x7f, 0x04,
+        0x41, 0xef, 0xe4, 0x1a, 0xed, 0x12, 0xc2, 0x07,
+        0x31, 0x3e, 0x83, 0xb2, 0x7a, 0xbd, 0x1e, 0x6a,
+        0x9d, 0x89, 0x27, 0x13, 0xbc, 0x30, 0xa1, 0x6b,
+        0xf9, 0x47, 0xd4, 0x6a, 0x59, 0xbb, 0xbb, 0x3a,
+        0x33, 0xee, 0x33, 0x38, 0x53, 0x91, 0xc7, 0x36,
+        0x75, 0xe7, 0xd0, 0xc3, 0x60, 0x21, 0x35, 0x41
+]
+
+pub_template = [
+    (PyKCS11.CKA_CLASS, oclass_pub),
+    (PyKCS11.CKA_TOKEN, PyKCS11.CK_TRUE),
+    (PyKCS11.CKA_GOSTR3410_PARAMS, tc26_decc_A_der_oid),
+    (PyKCS11.CKA_GOSTR3411_PARAMS, tc26_gost3411_2012_512_der_oid),
+    (PyKCS11.CKA_VERIFY, PyKCS11.CK_TRUE),
+    (PyKCS11.CKA_GOST28147_PARAMS, gost28147params_Z)
+]
+priv_template = [
+    (PyKCS11.CKA_CLASS, oclass_priv),
+    (PyKCS11.CKA_TOKEN, PyKCS11.CK_TRUE),
+    (PyKCS11.CKA_PRIVATE, PyKCS11.CK_TRUE),
+    (PyKCS11.CKA_SIGN, PyKCS11.CK_TRUE)
+]
+
+mechanism = Mechanism(CKM_GOSTR3410_512, None)
+mechanism_gen = Mechanism(CKM_GOSTR3410_512_KEY_PAIR_GEN, None)
+
+pkcs11 = PyKCS11.PyKCS11Lib()
+#Выбираем библиотеку
+#Программный токен
+lib = '/usr/local/lib64/libls11sw2016.so'
+#Для Windows
+#lib='C:\Temp\ls11sw2016.dll'
+#Облачный токен
+#lib = '/usr/local/lib64/libls11cloud.so'
+#Аппаратный токен
+#lib = '/usr/local/lib64/librtpkcs11ecp_2.0.so'
+pkcs11.load(lib)
+slot = pkcs11.getSlotList(tokenPresent=True)[0]
+session = pkcs11.openSession(slot, CKF_SERIAL_SESSION | CKF_RW_SESSION)
+#session = pkcs11.openSession(slot, PyKCS11.CKF_SERIAL_SESSION)
+userpin = '01234567'
+session.login(userpin)
+(pub_key, priv_key) = session.generateKeyPair(
+#    pub_template, priv_template, mecha=PyKCS11.MechanismGOSTR3410KEYPAIR512
+    pub_template, priv_template, mecha=mechanism_gen
+)
+#print (pub_key)
+#print (priv_key)
+signature = session.sign(priv_key, digest, mechanism)
+print("\nsignature:")
+print(bytes(signature).hex())
+result = session.verify(pub_key, digest, signature, mechanism)
+if (result == True):
+    print ('Подпись хорошая 1')
+else:
+    print ('Подпись плохая 1')
+    print (result)
+result = session.verify(pub_key, digest_err, signature, mechanism)
+if (result == True):
+    print ('Подпись хорошая 2')
+else:
+    print ('Подпись плохая 2')
+    print (result)
+
+session.logout()
+session.closeSession()
+
