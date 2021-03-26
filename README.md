@@ -66,7 +66,7 @@ cd to PyKCS11 folder and run::
     > nmake -f Makefile.win32 build
     > nmake -f Makefile.win32 install
 
-Windows binaries
+Windows binaries (without support GOST cryptography)
 ----------------
 
 You can get (untested) Windows binaries from https://ci.appveyor.com/project/LudovicRousseau/pykcs11 in "artifacts".
